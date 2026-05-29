@@ -10,7 +10,7 @@ import { useTranslation } from '../../i18n';
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { t, i18n } = useTranslation();
+  const { t, i18n, changeLanguage } = useTranslation();
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
 
