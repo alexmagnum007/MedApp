@@ -53,7 +53,7 @@ export async function requestNotificationPermission(): Promise<boolean> {
 
 // iOS allows at most 64 scheduled notifications per app across all medicines.
 // We cap each medicine to 50 future doses to leave headroom for other medicines.
-const MAX_REMINDERS_PER_MEDICINE = 50;
+const MAX_REMINDERS_PER_MEDICINE = 50; // shared across both "5min before" + "on time" notifications
 
 export async function scheduleMedicineReminders(medicine: Medicine): Promise<void> {
   await cancelMedicineReminders(medicine.id);
@@ -65,7 +65,28 @@ export async function scheduleMedicineReminders(medicine: Medicine): Promise<voi
 
   let current = start;
   while (current.isBefore(end) && count < MAX_REMINDERS_PER_MEDICINE) {
-    if (current.isAfter(dayjs())) {
+    const now = dayjs();
+    const fiveMinBefore = current.subtract(5, 'minute');
+
+    if (fiveMinBefore.isAfter(now)) {
+      await Notifications.scheduleNotificationAsync({
+        identifier: `${medicine.id}_${current.valueOf()}_warn`,
+        content: {
+          title: '💊 Remédio em 5 minutos!',
+          body: `Prepare-se para tomar ${medicine.name} - ${medicine.dosage}`,
+          data: { medicineId: medicine.id },
+          sound: true,
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: fiveMinBefore.toDate(),
+          channelId: 'remedio',
+        },
+      });
+      count++;
+    }
+
+    if (current.isAfter(now) && count < MAX_REMINDERS_PER_MEDICINE) {
       await Notifications.scheduleNotificationAsync({
         identifier: `${medicine.id}_${current.valueOf()}`,
         content: {
@@ -82,6 +103,7 @@ export async function scheduleMedicineReminders(medicine: Medicine): Promise<voi
       });
       count++;
     }
+
     current = current.add(frequencyHours, 'hour');
   }
 }
