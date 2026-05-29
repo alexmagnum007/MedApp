@@ -4,7 +4,7 @@ import { TextInput, Button, HelperText } from 'react-native-paper';
 import { addDoctor } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../i18n';
 
 type Props = { navigation: NativeStackNavigationProp<any> };
 

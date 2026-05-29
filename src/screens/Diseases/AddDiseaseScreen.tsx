@@ -10,7 +10,7 @@ import { Picker } from '@react-native-picker/picker';
 import dayjs from 'dayjs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateInput from '../../components/DateInput';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../i18n';
 
 type Props = { navigation: NativeStackNavigationProp<any> };
 

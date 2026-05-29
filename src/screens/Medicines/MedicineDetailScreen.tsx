@@ -7,7 +7,7 @@ import { Medicine } from '../../types';
 import dayjs from 'dayjs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../i18n';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;

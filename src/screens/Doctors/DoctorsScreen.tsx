@@ -7,7 +7,7 @@ import { Doctor, Appointment, ExamResult } from '../../types';
 import dayjs from 'dayjs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../i18n';
 
 type Props = { navigation: NativeStackNavigationProp<any> };
 

@@ -8,7 +8,7 @@ import { cancelMedicineReminders } from '../../services/notifications';
 import dayjs from 'dayjs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../i18n';
 
 type Props = { navigation: NativeStackNavigationProp<any> };
 

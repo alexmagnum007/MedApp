@@ -6,8 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Medicine, Appointment } from '../../types';
 import dayjs from 'dayjs';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
-import { changeLanguage } from '../../i18n';
+import { useTranslation } from '../../i18n';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -63,7 +62,7 @@ export default function HomeScreen() {
                 styles.langButton,
                 i18n.language === lang.code && styles.langButtonActive,
               ]}
-              onPress={() => changeLanguage(lang.code)}
+              onPress={() => changeLanguage(lang.code as any)}
             >
               <Text style={[
                 styles.langButtonText,

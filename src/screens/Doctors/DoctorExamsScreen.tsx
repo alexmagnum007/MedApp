@@ -7,7 +7,7 @@ import { ExamResult } from '../../types';
 import dayjs from 'dayjs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ImageViewer from '../../components/ImageViewer';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../i18n';
 
 type Props = {
   navigation: NativeStackNavigationProp<any>;
