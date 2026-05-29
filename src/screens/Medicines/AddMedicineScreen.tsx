@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Image, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, Alert, TouchableOpacity } from 'react-native';
 import { TextInput, Button, Text, SegmentedButtons, Switch } from 'react-native-paper';
 import { getDiseases, getDoctors, addMedicine } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,7 +20,8 @@ export default function AddMedicineScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [dosage, setDosage] = useState('');
-  const [frequency, setFrequency] = useState('8');
+  const [frequencyAmount, setFrequencyAmount] = useState('8');
+  const [frequencyUnit, setFrequencyUnit] = useState<'hours' | 'days' | 'weeks'>('hours');
   const [startTime, setStartTime] = useState(dayjs().format('HH:mm'));
   const [startDate, setStartDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [endDate, setEndDate] = useState('');
@@ -57,7 +58,9 @@ export default function AddMedicineScreen({ navigation }: Props) {
   async function handleSave() {
     setError('');
     console.log('[handleSave] chamado | user:', user?.uid ?? 'NULL', '| name:', name, '| dosage:', dosage);
-    if (!name || !dosage || !frequency || !startTime || !startDate) {
+    const unitMultiplier = { hours: 1, days: 24, weeks: 168 };
+    const frequencyHours = Number(frequencyAmount) * unitMultiplier[frequencyUnit];
+    if (!name || !dosage || !frequencyAmount || !startTime || !startDate) {
       setError(t('medicines.fillRequired'));
       return;
     }
@@ -86,7 +89,7 @@ export default function AddMedicineScreen({ navigation }: Props) {
       const medicineData: Record<string, any> = {
         name,
         dosage,
-        frequency: Number(frequency),
+        frequency: frequencyHours,
         startTime: startISO,
         startDate,
       };
@@ -107,6 +110,19 @@ export default function AddMedicineScreen({ navigation }: Props) {
     }
   }
 
+  const hourOptions = (() => {
+    const opts: { value: string; label: string }[] = [];
+    for (let h = 0.5; h <= 24; h += 0.5) {
+      const val = String(h);
+      let label: string;
+      if (h < 1) label = '30min';
+      else if (h % 1 === 0) label = `${h}h`;
+      else label = `${Math.floor(h)}h30`;
+      opts.push({ value: val, label });
+    }
+    return opts;
+  })();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {error ? (
@@ -118,19 +134,56 @@ export default function AddMedicineScreen({ navigation }: Props) {
       <TextInput label={t('medicines.medicineName')} value={name} onChangeText={setName} mode="outlined" style={styles.input} />
       <TextInput label={t('medicines.dosage')} value={dosage} onChangeText={setDosage} mode="outlined" style={styles.input} />
 
-      <Text variant="bodyMedium" style={styles.label}>{t('medicines.frequency')}</Text>
+      <Text variant="bodyMedium" style={styles.label}>{t('medicines.frequencyUnit')}</Text>
       <SegmentedButtons
-        value={frequency}
-        onValueChange={setFrequency}
+        value={frequencyUnit}
+        onValueChange={(unit) => {
+          const u = unit as 'hours' | 'days' | 'weeks';
+          setFrequencyUnit(u);
+          setFrequencyAmount(u === 'hours' ? '8' : '1');
+        }}
         buttons={[
-          { value: '4', label: '4h' },
-          { value: '6', label: '6h' },
-          { value: '8', label: '8h' },
-          { value: '12', label: '12h' },
-          { value: '24', label: '24h' },
+          { value: 'hours', label: t('medicines.hours') },
+          { value: 'days', label: t('medicines.days') },
+          { value: 'weeks', label: t('medicines.weeks') },
         ]}
         style={styles.segmented}
       />
+      {frequencyUnit === 'hours' ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRow}>
+          {hourOptions.map((opt) => (
+            <TouchableOpacity
+              key={opt.value}
+              style={[styles.chip, frequencyAmount === opt.value && styles.chipActive]}
+              onPress={() => setFrequencyAmount(opt.value)}
+            >
+              <Text style={[styles.chipText, frequencyAmount === opt.value && styles.chipTextActive]}>{opt.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ) : (
+        <SegmentedButtons
+          value={frequencyAmount}
+          onValueChange={setFrequencyAmount}
+          buttons={
+            frequencyUnit === 'days'
+              ? [
+                  { value: '1', label: '1' },
+                  { value: '2', label: '2' },
+                  { value: '3', label: '3' },
+                  { value: '4', label: '4' },
+                  { value: '7', label: '7' },
+                ]
+              : [
+                  { value: '1', label: '1' },
+                  { value: '2', label: '2' },
+                  { value: '3', label: '3' },
+                  { value: '4', label: '4' },
+                ]
+          }
+          style={styles.segmented}
+        />
+      )}
 
       <DateInput label={t('medicines.startDate')} value={startDate} onChange={setStartDate} style={styles.input} />
       <TextInput label={t('medicines.startTime')} value={startTime} onChangeText={setStartTime} keyboardType="numeric" mode="outlined" style={styles.input} maxLength={5} />
@@ -188,6 +241,19 @@ const styles = StyleSheet.create({
   label: { color: '#475569', marginBottom: 4 },
   input: { marginBottom: 12 },
   segmented: { marginBottom: 12 },
+  chipScroll: { marginBottom: 12 },
+  chipRow: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    backgroundColor: '#fff',
+  },
+  chipActive: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
+  chipText: { color: '#475569', fontWeight: '600', fontSize: 13 },
+  chipTextActive: { color: '#fff' },
   imageButton: { marginBottom: 12 },
   preview: { width: '100%', height: 200, borderRadius: 8, marginBottom: 12 },
   picker: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 4, marginBottom: 12, backgroundColor: '#fff' },

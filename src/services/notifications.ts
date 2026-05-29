@@ -4,6 +4,12 @@ import { Platform } from 'react-native';
 import { Medicine } from '../types';
 import dayjs from 'dayjs';
 
+export interface AppointmentReminder {
+  id: string;
+  date: string;
+  doctorName: string;
+}
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -33,6 +39,12 @@ export async function requestNotificationPermission(): Promise<boolean> {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#FF231F7C',
+    });
+    await Notifications.setNotificationChannelAsync('consulta', {
+      name: 'Lembretes de Consulta',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#2563eb',
     });
   }
 
@@ -78,5 +90,55 @@ export async function cancelMedicineReminders(medicineId: string): Promise<void>
   if (Platform.OS === 'web') return;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   const toCancel = scheduled.filter((n) => n.identifier.startsWith(medicineId));
+  await Promise.all(toCancel.map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
+}
+
+export async function scheduleAppointmentReminders(appt: AppointmentReminder): Promise<void> {
+  if (Platform.OS === 'web') return;
+  await cancelAppointmentReminders(appt.id);
+
+  const apptTime = dayjs(appt.date);
+  const now = dayjs();
+  const reminderMinus30 = apptTime.subtract(30, 'minute');
+
+  if (reminderMinus30.isAfter(now)) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `appt_${appt.id}_30min`,
+      content: {
+        title: '🏥 Consulta em 30 minutos!',
+        body: `Sua consulta com Dr(a). ${appt.doctorName} começa em 30 minutos.`,
+        data: { appointmentId: appt.id },
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: reminderMinus30.toDate(),
+        channelId: 'consulta',
+      },
+    });
+  }
+
+  if (apptTime.isAfter(now)) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `appt_${appt.id}_now`,
+      content: {
+        title: '🏥 Hora da consulta!',
+        body: `Sua consulta com Dr(a). ${appt.doctorName} começa agora.`,
+        data: { appointmentId: appt.id },
+        sound: true,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: apptTime.toDate(),
+        channelId: 'consulta',
+      },
+    });
+  }
+}
+
+export async function cancelAppointmentReminders(appointmentId: string): Promise<void> {
+  if (Platform.OS === 'web') return;
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const toCancel = scheduled.filter((n) => n.identifier.startsWith(`appt_${appointmentId}`));
   await Promise.all(toCancel.map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
 }

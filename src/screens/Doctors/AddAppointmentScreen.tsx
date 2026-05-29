@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Alert, View, Platform } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { getDoctors, getMedicines, addAppointment } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { scheduleAppointmentReminders, requestNotificationPermission } from '../../services/notifications';
 import { Doctor, Medicine } from '../../types';
 import dayjs from 'dayjs';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -27,6 +28,7 @@ export default function AddAppointmentScreen({ navigation, route }: Props) {
 
   useEffect(() => {
     loadOptions();
+    requestNotificationPermission();
   }, [user]);
 
   async function loadOptions() {
@@ -55,12 +57,18 @@ export default function AddAppointmentScreen({ navigation, route }: Props) {
     if (!date || !time) return showAlert(t('appointments.fillRequired'));
     setLoading(true);
     try {
-      await addAppointment({
+      const saved = await addAppointment({
         doctorId: selectedDoctor,
         date: dayjs(`${date} ${time}`).toISOString(),
         ...(notes ? { notes } : {}),
         prescriptionIds: selectedMedicines,
       });
+      const doctor = doctors.find((d) => d.id === selectedDoctor);
+      scheduleAppointmentReminders({
+        id: saved.id,
+        date: saved.date,
+        doctorName: doctor?.name ?? '',
+      }).catch(() => {});
       navigation.goBack();
     } catch (e: any) {
       showAlert(t('common.error'), e.message);
