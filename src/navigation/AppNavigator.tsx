@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -21,6 +21,7 @@ import AddAppointmentScreen from '../screens/Doctors/AddAppointmentScreen';
 import DoctorExamsScreen from '../screens/Doctors/DoctorExamsScreen';
 import ExamsScreen from '../screens/Exams/ExamsScreen';
 import AddExamScreen from '../screens/Exams/AddExamScreen';
+import NotificationSettingsScreen from '../screens/Settings/NotificationSettingsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -69,8 +70,22 @@ function ExamsStack() {
   );
 }
 
-function MainTabs() {
+function HomeHeaderRight() {
   const { logout } = useAuth();
+  const navigation = useNavigation<any>();
+  return (
+    <View style={{ flexDirection: 'row', gap: 8, marginRight: 12 }}>
+      <TouchableOpacity onPress={() => navigation.navigate('NotificationSettings')}>
+        <MaterialIcons name="notifications" size={24} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={logout}>
+        <MaterialIcons name="logout" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function MainTabs() {
   const { t } = useTranslation();
 
   return (
@@ -95,17 +110,23 @@ function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} options={{
         title: t('nav.home'), headerShown: true,
         headerStyle: { backgroundColor: '#2563eb' }, headerTintColor: '#fff', headerTitle: 'MedApp',
-        headerRight: () => (
-          <TouchableOpacity onPress={logout} style={{ marginRight: 12 }}>
-            <MaterialIcons name="logout" size={24} color="#fff" />
-          </TouchableOpacity>
-        ),
+        headerRight: () => <HomeHeaderRight />,
       }} />
       <Tab.Screen name="Medicines" component={MedicinesStack} options={{ title: t('nav.medicines') }} />
       <Tab.Screen name="Diseases" component={DiseasesStack} options={{ title: t('nav.diseases') }} />
       <Tab.Screen name="Doctors" component={DoctorsStack} options={{ title: t('nav.doctors') }} />
       <Tab.Screen name="Exams" component={ExamsStack} options={{ title: t('nav.exams') }} />
     </Tab.Navigator>
+  );
+}
+
+function RootStack() {
+  const { t } = useTranslation();
+  return (
+    <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#2563eb' }, headerTintColor: '#fff' }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} options={{ headerShown: false }} />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: t('settings.title') }} />
+    </Stack.Navigator>
   );
 }
 
@@ -131,7 +152,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      {user ? <MainTabs /> : <AuthStack />}
+      {user ? <RootStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }

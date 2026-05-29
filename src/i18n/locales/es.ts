@@ -171,6 +171,20 @@ const es = {
     notInformed: 'No informado',
   },
 
+  // Settings
+  settings: {
+    title: 'Notificaciones',
+    medicines: 'Medicamentos',
+    medicineEnabled: 'Activar notificaciones de medicamento',
+    medicineWarn: 'Aviso 5 minutos antes',
+    medicineWarnDesc: 'Notifica 5 minutos antes de cada dosis',
+    appointments: 'Consultas',
+    appointmentEnabled: 'Activar notificaciones de consulta',
+    appointmentWarn: 'Aviso 30 minutos antes',
+    appointmentWarnDesc: 'Notifica 30 minutos antes de la consulta',
+    hint: 'Las notificaciones solo funcionan en la app instalada, no en el navegador.',
+  },
+
   // Navigation
   nav: {
     home: 'Inicio',

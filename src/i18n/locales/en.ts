@@ -171,6 +171,20 @@ const en = {
     notInformed: 'Not provided',
   },
 
+  // Settings
+  settings: {
+    title: 'Notifications',
+    medicines: 'Medicines',
+    medicineEnabled: 'Enable medicine notifications',
+    medicineWarn: '5-minute warning',
+    medicineWarnDesc: 'Notifies 5 minutes before each dose',
+    appointments: 'Appointments',
+    appointmentEnabled: 'Enable appointment notifications',
+    appointmentWarn: '30-minute warning',
+    appointmentWarnDesc: 'Notifies 30 minutes before the appointment',
+    hint: 'Notifications only work in the installed app, not in the browser.',
+  },
+
   // Navigation
   nav: {
     home: 'Home',

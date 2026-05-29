@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { Medicine } from '../types';
+import { getNotificationSettings } from './notificationSettings';
 import dayjs from 'dayjs';
 
 export interface AppointmentReminder {
@@ -56,6 +57,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
 const MAX_REMINDERS_PER_MEDICINE = 50; // shared across both "5min before" + "on time" notifications
 
 export async function scheduleMedicineReminders(medicine: Medicine): Promise<void> {
+  if (Platform.OS === 'web') return;
+  const settings = await getNotificationSettings();
+  if (!settings.medicineEnabled) return;
   await cancelMedicineReminders(medicine.id);
 
   const start = dayjs(medicine.startTime);
@@ -68,7 +72,7 @@ export async function scheduleMedicineReminders(medicine: Medicine): Promise<voi
     const now = dayjs();
     const fiveMinBefore = current.subtract(5, 'minute');
 
-    if (fiveMinBefore.isAfter(now)) {
+    if (settings.medicineWarnEnabled && fiveMinBefore.isAfter(now)) {
       await Notifications.scheduleNotificationAsync({
         identifier: `${medicine.id}_${current.valueOf()}_warn`,
         content: {
@@ -117,13 +121,15 @@ export async function cancelMedicineReminders(medicineId: string): Promise<void>
 
 export async function scheduleAppointmentReminders(appt: AppointmentReminder): Promise<void> {
   if (Platform.OS === 'web') return;
+  const settings = await getNotificationSettings();
+  if (!settings.appointmentEnabled) return;
   await cancelAppointmentReminders(appt.id);
 
   const apptTime = dayjs(appt.date);
   const now = dayjs();
   const reminderMinus30 = apptTime.subtract(30, 'minute');
 
-  if (reminderMinus30.isAfter(now)) {
+  if (settings.appointmentWarnEnabled && reminderMinus30.isAfter(now)) {
     await Notifications.scheduleNotificationAsync({
       identifier: `appt_${appt.id}_30min`,
       content: {
